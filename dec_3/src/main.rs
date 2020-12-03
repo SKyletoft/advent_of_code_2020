@@ -6,25 +6,22 @@ fn main() {
 	println!("{}", sol2);
 }
 
-fn part_2(inputs: &[&str]) -> usize {
-	let part_1_sols = [
-		part_1(&inputs, 1, 1),
-		part_1(&inputs, 3, 1),
-		part_1(&inputs, 5, 1),
-		part_1(&inputs, 7, 1),
-		part_1(&inputs, 1, 2),
-	];
-	part_1_sols.iter().product()
-}
-
 fn part_1(inputs: &[&str], r_slope: usize, d_slope: usize) -> usize {
 	inputs
 		.iter()
-		.enumerate()
 		.step_by(d_slope)
-		.filter(|(x, line)| {
-			let line = line.as_bytes();
-			line[(x * r_slope / d_slope) % line.len()] == b'#'
-		})
+		.enumerate()
+		.filter(|(x, line)| line.as_bytes().get((x * r_slope) % line.len()) == Some(&b'#'))
 		.count()
+}
+
+fn part_2(inputs: &[&str]) -> usize {
+	let part_1_sols = [
+		part_1(inputs, 1, 1),
+		part_1(inputs, 3, 1),
+		part_1(inputs, 5, 1),
+		part_1(inputs, 7, 1),
+		part_1(inputs, 1, 2),
+	];
+	part_1_sols.iter().product()
 }
