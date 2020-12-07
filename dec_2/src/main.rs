@@ -1,7 +1,8 @@
 fn main() {
 	let inputs = include_str!("input.txt").lines().collect::<Vec<_>>();
-	let sol = inputs.iter().filter(part_two).count();
-	println!("{}", sol);
+	let sol1 = inputs.iter().filter(part_one).count();
+	let sol2 = inputs.iter().filter(part_two).count();
+	println!("{} {}", sol1, sol2);
 }
 
 fn split_input(line: &str) -> Option<(usize, usize, char, &str)> {

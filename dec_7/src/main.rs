@@ -43,7 +43,9 @@ fn solve2(input: &[&str]) -> usize {
 		let (t_count, t_name) = next.remove(0);
 		needed.push((t_count, t_name));
 		if let Some(v) = parsed.get(t_name) {
-			v.iter().map(|(c, n)| (c * t_count, n)).for_each(|(c, &n)| next.push((c, n)));
+			for (c, &n) in v.iter().map(|(c, n)| (c * t_count, n)) {
+				next.push((c, n));
+			}
 		}
 	}
 	needed.iter().map(|&(c, _)| c).sum()
