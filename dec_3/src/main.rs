@@ -1,9 +1,8 @@
 fn main() {
 	let inputs = include_str!("input.txt").lines().collect::<Vec<_>>();
 	let sol1 = part_1(&inputs, 3, 1);
-	println!("{}", sol1);
 	let sol2 = part_2(&inputs);
-	println!("{}", sol2);
+	println!("{} {}", sol1, sol2);
 }
 
 fn part_1(inputs: &[&str], r_slope: usize, d_slope: usize) -> usize {
