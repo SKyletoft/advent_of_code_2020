@@ -17,7 +17,7 @@ fn parse_instruction(i: &str) -> Instruction {
 	}
 }
 
-fn fix(lines: &mut [Instruction], itf: usize) -> &[Instruction] {
+fn fix(lines: &mut [Instruction], itf: usize) {
 	let instruction_to_fix = itf;
 	let res = match lines[instruction_to_fix] {
 		Nop(v) => Jmp(v),
@@ -25,14 +25,13 @@ fn fix(lines: &mut [Instruction], itf: usize) -> &[Instruction] {
 		x => x,
 	};
 	lines[instruction_to_fix] = res;
-	lines
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct CPU {
 	acc: isize,
 	pc: isize,
-	visited: Vec<isize>,
+	visited: Vec<usize>,
 	end: bool,
 }
 
@@ -47,22 +46,25 @@ impl CPU {
 	}
 
 	fn cycle(&mut self, instructions: &[Instruction]) -> Option<()> {
-		let pc = self.pc;
+		if self.end {
+			return None;
+		}
+		let pc = self.pc as usize;
+		if pc >= instructions.len() {
+			self.end = true;
+			return None;
+		}
 		if self.visited.contains(&pc) {
 			return None;
 		}
 		self.visited.push(pc);
-		match instructions.get(pc as usize) {
-			Some(Nop(_)) => {}
-			Some(Acc(res)) => {
+		match instructions[pc] {
+			Nop(_) => {}
+			Acc(res) => {
 				self.acc += res;
 			}
-			Some(Jmp(res)) => {
+			Jmp(res) => {
 				self.pc += res - 1;
-			}
-			None => {
-				self.end = true;
-				return None;
 			}
 		}
 		self.pc += 1;
@@ -79,14 +81,15 @@ fn main() {
 	while cpu.cycle(&input).is_some() {}
 	dbg!(cpu.acc);
 
+	let mut wip = input.clone();
 	for i in 0..input.len() {
-		let mut wip = input.clone();
-		let fixed = fix(&mut wip, i);
+		fix(&mut wip, i);
 		let mut cpu = CPU::new();
-		while cpu.cycle(&fixed).is_some() {}
+		while cpu.cycle(&wip).is_some() {}
 		if cpu.end {
 			dbg!(cpu.acc);
 			break;
 		}
+		fix(&mut wip, i);
 	}
 }
