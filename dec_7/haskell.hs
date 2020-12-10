@@ -12,10 +12,11 @@ solve1 parsed = (\x -> x - 1) . length . f [] $ ["shiny gold"]
 solve2 :: [(String, [(Int, String)])] -> Int
 solve2 parsed = sum . f [] ["shiny gold"]
   where
+    f :: [(Int, String)] -> [(String, (Int, String))] -> [(Int, String)]
     f can [] = can
-    f can (n@(name, vec) : new) = f (nub (n : can)) (nub (toNew ++ new))
+    f (next : can) (n@(name, vec) : new) = f (nub (n : can)) (nub (toNew ++ new))
       where
-        toNew = map (\(n,v) -> (n, map (\(a,b) -> a * ) v)) . containsWithCounts parsed $ name
+        toNew = map (\(n, v) -> (n, map (\(a, b) -> a * next) v)) . containsWithCounts parsed $ name
 
 contains :: [(String, [String])] -> String -> [(String, [String])]
 contains source target = filter (\(_, xs) -> target `elem` xs) source
@@ -48,6 +49,6 @@ chunksOf4 :: [a] -> [[a]]
 chunksOf4 (a : b : c : d : xs) = [a, b, c, d] : chunksOf4 xs
 chunksOf4 _ = []
 
-main = interact ((++ "\n") . show . solve1 . map parse . lines)
+main = interact ((++ "\n") . show . solve2 . map parseWithCounts . lines)
 
 --main = interact (unlines . map (show . parse) . lines)
