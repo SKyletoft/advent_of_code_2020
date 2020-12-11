@@ -37,8 +37,11 @@ struct Matrix {
 
 impl Matrix {
 	fn get(&self, x: usize, y: usize) -> Option<Seat> {
+		if x >= self.w || y >= self.h {
+			return None;
+		}
 		let index = self.w.wrapping_mul(y).wrapping_add(x);
-		self.val.get(index).map(|&x| x)
+		self.val.get(index).copied()
 	}
 	fn set(&mut self, x: usize, y: usize, val: Seat) {
 		assert!(x < self.w);
@@ -57,7 +60,7 @@ impl std::fmt::Debug for Matrix {
 				let print = match seat {
 					Occupied => '#',
 					Empty => 'L',
-					Floor => '.'
+					Floor => '.',
 				};
 				write!(f, "{}", print)?;
 			}
@@ -73,17 +76,15 @@ fn step(from: &Matrix, to: &mut Matrix) {
 			let seat = from.get(width, height).unwrap();
 			let neighbours = NEIGHBOURING
 				.iter()
-				.map(|&(x, y)| (x.wrapping_add(width), y.wrapping_add(height)))
-				.filter(|&(x, y)| x < from.w && y < from.h)
-				.map(|(x, y)| from.get(x,y))
+				.map(|&(x, y)| from.get(x.wrapping_add(width), y.wrapping_add(height)))
 				.filter(|&x| x == Some(Occupied))
 				.count();
 			to.set(
 				width,
 				height,
-				match neighbours {
-					0 if seat == Empty => Occupied,
-					n if n >= 4 && seat == Occupied => Empty,
+				match (neighbours, seat) {
+					(0, Empty) => Occupied,
+					(n, Occupied) if n >= 4 => Empty,
 					_ => seat,
 				},
 			);
@@ -91,75 +92,20 @@ fn step(from: &Matrix, to: &mut Matrix) {
 	}
 }
 
-fn interpret(input: &str) -> Matrix {
-	let width = input.lines().next().unwrap().len();
-	let height = input.lines().count();
-	let mut m = Matrix {
-		w: width,
-		h: height,
-		val: Vec::with_capacity(width * height),
-	};
-	input
-		.bytes()
-		.filter(|&x| x == b'#' || x == b'.' || x == b'L')
-		.map(|x| match x {
-			b'#' => Occupied,
-			b'.' => Floor,
-			b'L' => Empty,
-			_ => unreachable!(),
-		})
-		.for_each(|s| m.val.push(s));
-	m
-}
-
-fn solve1(m: &Matrix) -> usize {
-	let mut one = m.clone();
-	let mut two = m.clone();
-	dbg!(&one);
-	two.set(0, 0, Occupied);
-	while one != two {
-		step(&one, &mut two);
-		swap(&mut one, &mut two);
-		//dbg!(&one);
-	}
-	one.val.iter().filter(|&&s| s == Occupied).count()
-}
-
-fn solve2(m: &Matrix) -> usize {
-	let mut one = m.clone();
-	let mut two = m.clone();
-	//dbg!(&one);
-	two.set(0, 0, Occupied);
-	while one != two {
-		step_diagonal(&one, &mut two);
-		swap(&mut one, &mut two);
-		//dbg!(&one);
-	}
-	one.val.iter().filter(|&&s| s == Occupied).count()
-}
-
 fn step_diagonal(from: &Matrix, to: &mut Matrix) {
 	for height in 0..from.h {
 		for width in 0..from.w {
 			let seat = from.get(width, height).unwrap();
-			let mut neighbours = 0;
-			for &(del_x, del_y) in NEIGHBOURING.iter() {
-				let mut x = width.wrapping_add(del_x);
-				let mut y = height.wrapping_add(del_y);
-				while x < from.w && y < from.h {
-					let vis_seat = from.get(x, y).unwrap();
-					if vis_seat == Occupied {
-						neighbours += 1;
-						break;
-					}
-					if vis_seat == Empty {
-						break;
-					}
-					x = x.wrapping_add(del_x);
-					y = y.wrapping_add(del_y);
-				}
-
-			}
+			let neighbours = NEIGHBOURING
+				.iter()
+				.map(|&(del_x, del_y)| {
+					(1..)
+						.map(|n| from.get(width + n * del_x, height + n * del_y))
+						.find(|&x| x != Some(Floor))
+						.flatten()
+				})
+				.filter(|&x| x == Some(Occupied))
+				.count();
 			to.set(
 				width,
 				height,
@@ -171,4 +117,45 @@ fn step_diagonal(from: &Matrix, to: &mut Matrix) {
 			);
 		}
 	}
+}
+
+fn interpret(input: &str) -> Matrix {
+	let width = input.lines().next().unwrap().len();
+	let height = input.lines().count();
+	Matrix {
+		w: width,
+		h: height,
+		val: input
+			.bytes()
+			.filter(|&x| x == b'#' || x == b'.' || x == b'L')
+			.map(|x| match x {
+				b'#' => Occupied,
+				b'.' => Floor,
+				b'L' => Empty,
+				_ => unreachable!(),
+			})
+			.collect(),
+	}
+}
+
+fn solve1(m: &Matrix) -> usize {
+	let mut one = m.clone();
+	let mut two = m.clone();
+	two.set(0, 0, Occupied);
+	while one != two {
+		step(&one, &mut two);
+		swap(&mut one, &mut two);
+	}
+	one.val.iter().filter(|&&s| s == Occupied).count()
+}
+
+fn solve2(m: &Matrix) -> usize {
+	let mut one = m.clone();
+	let mut two = m.clone();
+	two.set(0, 0, Occupied);
+	while one != two {
+		step_diagonal(&one, &mut two);
+		swap(&mut one, &mut two);
+	}
+	one.val.iter().filter(|&&s| s == Occupied).count()
 }
