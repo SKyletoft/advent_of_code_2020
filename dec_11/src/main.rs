@@ -80,11 +80,10 @@ fn count_neighbouring(from: &Board, x: usize, y: usize) -> usize {
 fn count_line_of_sight(from: &Board, x: usize, y: usize) -> usize {
 	NEIGHBOURING
 		.iter()
-		.map(|&(dx, dy)| {
+		.flat_map(|&(dx, dy)| {
 			(1..)
 				.map(|n| from.get(x + n * dx, y + n * dy))
 				.find(|&x| x != Some(Floor))
-				.flatten()
 		})
 		.filter(|&x| x == Some(Occupied))
 		.count()
@@ -99,6 +98,9 @@ fn step(
 	for y in 0..from.h {
 		for x in 0..from.w {
 			let seat = from.get(x, y).unwrap();
+			if seat == Floor {
+				continue;
+			}
 			let neighbours = how(from, x, y);
 			to.set(
 				x,
