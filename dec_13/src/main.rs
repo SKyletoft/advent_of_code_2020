@@ -9,6 +9,7 @@ fn solve1(input: &str) -> usize {
 	let linebreak = input.chars().position(|c| c == '\n').unwrap();
 	let time_stamp = input[..linebreak].parse::<usize>().unwrap();
 	let (bus, min_wait) = input[(linebreak + 1)..]
+		.trim()
 		.split(',')
 		.filter_map(|s| s.parse::<usize>().ok())
 		.map(|b| (b, b - time_stamp % b))
@@ -20,6 +21,7 @@ fn solve1(input: &str) -> usize {
 fn solve2(input: &str) -> usize {
 	let linebreak = input.chars().position(|c| c == '\n').unwrap();
 	let mut buses = input[(linebreak + 1)..]
+		.trim()
 		.split(',')
 		.enumerate()
 		.map(|(i, s)| (i, s.parse()))
@@ -27,7 +29,6 @@ fn solve2(input: &str) -> usize {
 		.map(|(a, b)| (a, b.unwrap()))
 		.map(|(a, b)| ((16 * b - a) % b, b))
 		.collect::<Vec<(usize, usize)>>();
-	dbg!(&buses);
 	buses.sort_unstable_by_key(|(_, a)| *a);
 	let (lcm, res) = buses
 		.iter()
@@ -41,7 +42,6 @@ fn solve2(input: &str) -> usize {
 		assert_eq!(res % prim, index, "{} {}", index, prim);
 	}
 
-	dbg!(lcm);
 	res
 }
 
