@@ -41,6 +41,7 @@ fn solve2(input: &str) -> usize {
 		assert_eq!(res % prim, index, "{} {}", index, prim);
 	}
 
+	dbg!(lcm);
 	res
 }
 
