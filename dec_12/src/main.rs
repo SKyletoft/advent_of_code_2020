@@ -50,8 +50,9 @@ fn solve1(input: &[Instruction]) -> usize {
 				rot %= 360.;
 			}
 			Forwards(v) => {
-				let dx = rot.to_radians().cos() as i32 * v;
-				let dy = rot.to_radians().sin() as i32 * v;
+				let (sin, cos) = rot.to_radians().sin_cos();
+				let dx = cos as i32 * v;
+				let dy = sin as i32 * v;
 				x += dx;
 				y += dy;
 			}
@@ -75,13 +76,11 @@ fn solve2(input: &[Instruction]) -> usize {
 				x += v;
 			}
 			Turn(v) => {
-				let t = (v as f32).to_radians();
-				let x1 = t.cos() * x as f32;
-				let x2 = -t.sin() * y as f32;
-				let y1 = t.sin() * x as f32;
-				let y2 = t.cos() * y as f32;
-				x = (x1 + x2).round() as i32;
-				y = (y1 + y2).round() as i32;
+				let xf = x as f32;
+				let yf = y as f32;
+				let (sin, cos) = (v as f32).to_radians().sin_cos();
+				x = (cos * xf - sin * yf).round() as i32;
+				y = (sin * xf + cos * yf).round() as i32;
 			}
 			Forwards(v) => {
 				sx += x * v;

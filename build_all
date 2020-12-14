@@ -1,0 +1,43 @@
+cd dec_1
+rm -rf target
+cargo build --release
+cd ../dec_2
+rm -rf target
+cargo build --release
+cd ../dec_3
+rm -rf target
+cargo build --release
+cd ../dec_4
+rm -rf target
+cargo build --release
+cd ../dec_5
+rm -rf target
+cargo build --release
+cd ../dec_6
+rm -rf target
+cargo build --release
+cd ../dec_7
+rm -rf target
+cargo build --release
+cd ../dec_8
+rm -rf target
+cargo build --release
+cd ../dec_9
+rm -rf target
+cargo build --release
+cd ../dec_10
+rm -rf target
+cargo build --release
+cd ../dec_11
+rm -rf target
+cargo build --release
+cd ../dec_12
+rm -rf target
+cargo build --release
+cd ../dec_13
+rm -rf target
+cargo build --release
+cd ../dec_14
+rm -rf target
+cargo build --release
+cd ..
