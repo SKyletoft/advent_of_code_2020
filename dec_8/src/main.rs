@@ -77,9 +77,11 @@ fn main() {
 		.lines()
 		.map(parse_instruction)
 		.collect::<Vec<_>>();
+	let sol1;
+	let mut sol2 = 0;
 	let mut cpu = CPU::new();
 	while cpu.cycle(&input).is_some() {}
-	dbg!(cpu.acc);
+	sol1 = cpu.acc;
 
 	let mut wip = input.clone();
 	for i in 0..input.len() {
@@ -87,9 +89,10 @@ fn main() {
 		let mut cpu = CPU::new();
 		while cpu.cycle(&wip).is_some() {}
 		if cpu.end {
-			dbg!(cpu.acc);
+			sol2 = cpu.acc;
 			break;
 		}
 		fix(&mut wip, i);
 	}
+	println!("{} {}", sol1, sol2);
 }
