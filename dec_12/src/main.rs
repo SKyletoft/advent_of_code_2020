@@ -32,7 +32,7 @@ fn parse(input: &str) -> Instruction {
 	}
 }
 
-fn solve1(input: &[Instruction]) -> usize {
+fn solve1(input: &[Instruction]) -> u64 {
 	let mut x: i32 = 0;
 	let mut y: i32 = 0;
 	let mut rot = 0.;
@@ -58,10 +58,10 @@ fn solve1(input: &[Instruction]) -> usize {
 			}
 		}
 	}
-	(x.abs() + y.abs()) as usize
+	(x.abs() + y.abs()) as u64
 }
 
-fn solve2(input: &[Instruction]) -> usize {
+fn solve2(input: &[Instruction]) -> u64 {
 	let mut x: i32 = 10;
 	let mut y: i32 = 1;
 	let mut sx: i32 = 0;
@@ -88,5 +88,5 @@ fn solve2(input: &[Instruction]) -> usize {
 			}
 		}
 	}
-	(sx.abs() + sy.abs()) as usize
+	(sx.abs() + sy.abs()) as u64
 }

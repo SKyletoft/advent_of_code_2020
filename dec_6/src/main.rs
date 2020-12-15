@@ -7,7 +7,7 @@ fn main() {
 	println!("{} {}", sol1, sol2);
 }
 
-fn solve1(input: &str) -> usize {
+fn solve1(input: &str) -> u64 {
 	input
 		.split("\n\n")
 		.map(|group| {
@@ -17,10 +17,10 @@ fn solve1(input: &str) -> usize {
 				.unique()
 				.count()
 		})
-		.sum()
+		.sum::<usize>() as u64
 }
 
-fn solve2(input: &str) -> usize {
+fn solve2(input: &str) -> u64 {
 	input
 		.split("\n\n")
 		.map(|group| {
@@ -31,5 +31,5 @@ fn solve2(input: &str) -> usize {
 				.filter(|&c| c.is_ascii_alphabetic() && members.iter().all(|m| m.contains(c)))
 				.count()
 		})
-		.sum()
+		.sum::<usize>() as u64
 }

@@ -15,7 +15,7 @@ const PASSPORT_FIELDS: [Option<&str>; 7] = [
 	Some("pid:"),
 ];
 
-fn solve1(input: &str) -> usize {
+fn solve1(input: &str) -> u64 {
 	let mut buf = PASSPORT_FIELDS.to_vec();
 	input
 		.split("\n\n")
@@ -28,10 +28,10 @@ fn solve1(input: &str) -> usize {
 			});
 			buf.is_empty()
 		})
-		.count()
+		.count() as u64
 }
 
-fn solve2(input: &str) -> usize {
+fn solve2(input: &str) -> u64 {
 	let mut buf = PASSPORT_FIELDS.to_vec();
 	input
 		.split("\n\n")
@@ -70,7 +70,7 @@ fn solve2(input: &str) -> usize {
 			}
 			buf.is_empty()
 		})
-		.count()
+		.count() as u64
 }
 
 fn valid_year(s: &str, min: u16, max: u16) -> bool {

@@ -69,15 +69,15 @@ impl std::fmt::Debug for Board {
 	}
 }
 
-fn count_neighbouring(from: &Board, x: usize, y: usize) -> usize {
+fn count_neighbouring(from: &Board, x: usize, y: usize) -> u64 {
 	NEIGHBOURING
 		.iter()
 		.map(|&(dx, dy)| from.get(dx.wrapping_add(x), dy.wrapping_add(y)))
 		.filter(|&t| t == Some(Occupied))
-		.count()
+		.count() as u64
 }
 
-fn count_line_of_sight(from: &Board, x: usize, y: usize) -> usize {
+fn count_line_of_sight(from: &Board, x: usize, y: usize) -> u64 {
 	NEIGHBOURING
 		.iter()
 		.flat_map(|&(dx, dy)| {
@@ -86,14 +86,14 @@ fn count_line_of_sight(from: &Board, x: usize, y: usize) -> usize {
 				.find(|&x| x != Some(Floor))
 		})
 		.filter(|&x| x == Some(Occupied))
-		.count()
+		.count() as u64
 }
 
 fn step(
 	from: &Board,
 	to: &mut Board,
-	how: fn(from: &Board, x: usize, y: usize) -> usize,
-	req: usize,
+	how: fn(from: &Board, x: usize, y: usize) -> u64,
+	req: u64,
 ) {
 	for y in 0..from.h {
 		for x in 0..from.w {
@@ -134,7 +134,7 @@ fn interpret(input: &str) -> Board {
 	}
 }
 
-fn solve1(m: &Board) -> usize {
+fn solve1(m: &Board) -> u64 {
 	let mut one = m.clone();
 	let mut two = m.clone();
 	two.set(0, 0, Occupied);
@@ -142,10 +142,10 @@ fn solve1(m: &Board) -> usize {
 		step(&one, &mut two, count_neighbouring, 4);
 		swap(&mut one, &mut two);
 	}
-	one.val.iter().filter(|&&s| s == Occupied).count()
+	one.val.iter().filter(|&&s| s == Occupied).count() as u64
 }
 
-fn solve2(m: &Board) -> usize {
+fn solve2(m: &Board) -> u64 {
 	let mut one = m.clone();
 	let mut two = m.clone();
 	two.set(0, 0, Occupied);
@@ -153,5 +153,5 @@ fn solve2(m: &Board) -> usize {
 		step(&one, &mut two, count_line_of_sight, 5);
 		swap(&mut one, &mut two);
 	}
-	one.val.iter().filter(|&&s| s == Occupied).count()
+	one.val.iter().filter(|&&s| s == Occupied).count() as u64
 }

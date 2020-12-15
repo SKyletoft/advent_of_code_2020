@@ -5,16 +5,16 @@ fn main() {
 	println!("{} {}", sol1, sol2);
 }
 
-fn part_1(inputs: &[&str], r_slope: usize, d_slope: usize) -> usize {
+fn part_1(inputs: &[&str], r_slope: usize, d_slope: usize) -> u64 {
 	inputs
 		.iter()
 		.step_by(d_slope)
 		.enumerate()
 		.filter(|(x, line)| line.as_bytes().get((x * r_slope) % line.len()) == Some(&b'#'))
-		.count()
+		.count() as u64
 }
 
-fn part_2(inputs: &[&str]) -> usize {
+fn part_2(inputs: &[&str]) -> u64 {
 	let part_1_sols = [
 		part_1(inputs, 1, 1),
 		part_1(inputs, 3, 1),

@@ -7,7 +7,7 @@ fn main() {
 	println!("{} {}", sol1, sol2);
 }
 
-fn solve1(input: &[&str]) -> usize {
+fn solve1(input: &[&str]) -> u64 {
 	let parsed = input
 		.iter()
 		.map(|l| parse_bag(l))
@@ -29,10 +29,10 @@ fn solve1(input: &[&str]) -> usize {
 			can_contain_new.insert(outer_bag);
 		}
 	}
-	can_contain_white.len() - 1
+	can_contain_white.len() as u64 - 1
 }
 
-fn solve2(input: &[&str]) -> usize {
+fn solve2(input: &[&str]) -> u64 {
 	let parsed = input
 		.iter()
 		.map(|l| parse_bag_with_amounts(l))
@@ -73,7 +73,7 @@ fn parse_bag(mut bag: &str) -> (&str, Vec<&str>) {
 	(first, matches)
 }
 
-fn parse_bag_with_amounts(mut bag: &str) -> (&str, Vec<(usize, &str)>) {
+fn parse_bag_with_amounts(mut bag: &str) -> (&str, Vec<(u64, &str)>) {
 	bag = bag.trim_end_matches('.');
 	let (mut first, mut second) = bag.split_at(bag.find(" contain").unwrap());
 	first = strip_bags(first);
