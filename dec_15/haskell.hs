@@ -1,6 +1,6 @@
 import Data.List (elemIndex)
 import Data.Maybe (isJust)
-import Debug.Trace (traceShowId)
+import Debug.Trace (trace, traceShowId)
 
 solve :: Int -> [Int] -> [Int]
 solve i xs = helper toTake . reverse $ xs
@@ -25,4 +25,4 @@ replace from to (x : xs)
   | otherwise = x : replace from to xs
 
 main :: IO ()
-main = interact ((++ "\n") . show . head . solve 300000 . map read . words . replace ',' ' ')
+main = interact ((++ "\n") . show . head . solve 500000 . map read . words . replace ',' ' ' . trace "Starting List")

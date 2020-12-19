@@ -1,1 +1,8 @@
-*target*
+!*.*
+*.hi
+**.hi
+*.o
+**.o
+**target/
+*.exe
+**.exe

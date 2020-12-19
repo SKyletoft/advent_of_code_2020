@@ -36,4 +36,4 @@ replace from to (x : xs)
   | otherwise = x : replace from to xs
 
 main :: IO ()
-main = interact ((++ "\n") . show . Data.Vector.head . solve 300000 . map read . words . replace ',' ' ')
+main = interact ((++ "\n") . show . Data.Vector.head . solve 500000 . map read . words . replace ',' ' ' . trace "Starting Vector")
