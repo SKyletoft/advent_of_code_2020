@@ -32,10 +32,9 @@ fn solve2(input: &[&str], mut rules: Vec<Rule>) -> usize {
 		.iter()
 		.skip_while(|s| s.chars().next().map(|c| c.is_ascii_digit()) == Some(true))
 		.filter(|l| !l.is_empty())
-		.map(|line| (line, rules[0].match_str_iter(&rules, line)))
-		.filter(|(_, r)| r.is_ok())
-		.map(|(i, r)| (i, r.unwrap()))
-		.filter(|(_, r)| r.contains(&""))
+		.map(|line| rules[0].match_str_iter(&rules, line))
+		.filter_map(|r| r.ok())
+		.filter(|r| r.contains(&""))
 		.count()
 }
 
@@ -99,60 +98,28 @@ impl Rule {
 				}
 			}
 			One(r1) => rules[*r1].match_str_iter(rules, s),
-			Two(r1, r2) => rules[*r1].match_str_iter(rules, s).and_then(|v| {
-				let new_res = v
-					.iter()
-					.map(|n_s| rules[*r2].match_str_iter(rules, n_s))
-					.collect::<Vec<_>>();
-				if new_res.iter().all(|r| r.is_err()) {
-					return Err(s);
-				}
-				Ok(new_res
-					.into_iter()
-					.filter(Result::is_ok)
-					.map(move |r| r.unwrap().into_iter())
-					.flatten()
-					.collect())
+			Two(r1, r2) => rules[*r1].match_str_iter(rules, s).map(|v| {
+				v.iter()
+					.filter_map(|n_s| rules[*r2].match_str_iter(rules, n_s).ok())
+					.flat_map(move |r| r.into_iter())
+					.collect()
 			}),
-			Three(r1, r2, r3) => rules[*r1].match_str_iter(rules, s).and_then(|v| {
-				let new_res = v
-					.iter()
-					.map(|n_s| rules[*r2].match_str_iter(rules, n_s))
-					.collect::<Vec<_>>();
-				if new_res.iter().all(|r| r.is_err()) {
-					return Err(s);
-				}
-				let new_new_res = new_res
-					.into_iter()
-					.filter(Result::is_ok)
-					.map(move |r| r.unwrap().into_iter())
-					.flatten()
-					.map(|nn_s| rules[*r3].match_str_iter(rules, nn_s))
-					.collect::<Vec<_>>();
-				if new_new_res.iter().all(|r| r.is_err()) {
-					return Err(s);
-				}
-				Ok(new_new_res
-					.into_iter()
-					.filter(Result::is_ok)
-					.map(move |r| r.unwrap().into_iter())
-					.flatten()
-					.collect())
+			Three(r1, r2, r3) => rules[*r1].match_str_iter(rules, s).map(|v| {
+				v.iter()
+					.filter_map(|n_s| rules[*r2].match_str_iter(rules, n_s).ok())
+					.flat_map(move |r| r.into_iter())
+					.filter_map(|nn_s| rules[*r3].match_str_iter(rules, nn_s).ok())
+					.flat_map(move |r| r.into_iter())
+					.collect()
 			}),
-			Either(r1, r2) => {
-				let s1 = r1.match_str_iter(rules, s);
-				let s2 = r2.match_str_iter(rules, s);
-				if s2.is_err() {
-					s1
-				} else if s1.is_err() {
-					s2
-				} else if let (Ok(mut s1), Ok(mut s2)) = (s1, s2) {
+			Either(r1, r2) => match (r1.match_str_iter(rules, s), r2.match_str_iter(rules, s)) {
+				(a, Err(_)) => a,
+				(Err(_), b) => b,
+				(Ok(mut s1), Ok(mut s2)) => {
 					s1.append(&mut s2);
 					Ok(s1)
-				} else {
-					unreachable!()
 				}
-			}
+			},
 			Nothing => {
 				dbg!(self);
 				panic!()
@@ -267,7 +234,7 @@ fn parse_rules(input: &[&str]) -> Vec<Rule> {
 		.iter()
 		.take_while(|s| s.chars().next().map(|c| c.is_ascii_digit()) == Some(true))
 		.count();
-	let mut rules = Vec::new();
+	let mut rules = Vec::with_capacity(input.len());
 	for line in input.iter().take(rule_count) {
 		let tokens = line.split_ascii_whitespace().collect::<Vec<_>>();
 		let idx = tokens[0][..tokens[0].len() - 1].parse::<usize>().unwrap();
