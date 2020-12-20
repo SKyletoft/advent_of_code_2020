@@ -81,6 +81,7 @@ impl Rule {
 			}
 		}
 	}
+
 	fn match_str_iter<'a>(&self, rules: &[Rule], s: &'a str) -> Result<Vec<&'a str>, &'a str> {
 		if s.is_empty() {
 			return Err(s);
@@ -126,106 +127,106 @@ impl Rule {
 			}
 		}
 	}
+
+	fn optimise_rule(&mut self, rules: &[Rule]) {
+		match self {
+			Either(r1, r2) => {
+				r1.optimise_rule(rules);
+				r2.optimise_rule(rules);
+				if r1 == r2 {
+					*self = *r1.clone();
+				} else {
+					*self = Either(Box::new(*r1.clone()), Box::new(*r2.clone()));
+				}
+			}
+			One(idx) => *self = rules[*idx].clone(),
+			Two(idx, jdx) => match (&rules[*idx], &rules[*jdx]) {
+				(Token(a), Token(b)) => *self = Tokens(vec![*a, *b]),
+				(Token(a), Tokens(v)) => {
+					let mut clone = v.clone();
+					clone.insert(0, *a);
+					*self = Tokens(clone);
+				}
+				(Tokens(v), Token(b)) => {
+					let mut clone = v.clone();
+					clone.push(*b);
+					*self = Tokens(clone);
+				}
+				(Tokens(a), Tokens(b)) => {
+					let mut clone = a.clone();
+					clone.append(&mut b.clone());
+					*self = Tokens(clone);
+				}
+				(Two(a, b), One(c)) => *self = Three(*a, *b, *c),
+				(One(a), Two(b, c)) => *self = Three(*a, *b, *c),
+				(One(a), One(b)) => *self = Two(*a, *b),
+				_ => {}
+			},
+			Three(idx, jdx, kdx) => match (&rules[*idx], &rules[*jdx], &rules[*kdx]) {
+				(Token(a), Token(b), Token(c)) => *self = Tokens(vec![*a, *b, *c]),
+				(Tokens(a), Token(b), Token(c)) => {
+					let mut clone = a.clone();
+					clone.push(*b);
+					clone.push(*c);
+					*self = Tokens(clone);
+				}
+				(Token(a), Tokens(b), Token(c)) => {
+					let mut clone = b.clone();
+					clone.insert(0, *a);
+					clone.push(*c);
+					*self = Tokens(clone);
+				}
+				(Token(a), Token(b), Tokens(c)) => {
+					let mut clone = c.clone();
+					clone.insert(0, *b);
+					clone.insert(0, *a);
+					*self = Tokens(clone);
+				}
+				(Tokens(a), Tokens(b), Token(c)) => {
+					let mut clone = a.clone();
+					clone.append(&mut b.clone());
+					clone.push(*c);
+					*self = Tokens(clone);
+				}
+				(Tokens(a), Token(b), Tokens(c)) => {
+					let mut clone = a.clone();
+					clone.push(*b);
+					clone.append(&mut c.clone());
+					*self = Tokens(clone);
+				}
+				(Token(a), Tokens(b), Tokens(c)) => {
+					let mut clone = b.clone();
+					clone.insert(0, *a);
+					clone.append(&mut c.clone());
+					*self = Tokens(clone);
+				}
+				(Tokens(a), Tokens(b), Tokens(c)) => {
+					let mut clone = a.clone();
+					clone.append(&mut b.clone());
+					clone.append(&mut c.clone());
+					*self = Tokens(clone);
+				}
+				_ => {}
+			},
+			_ => {}
+		}
+	}
 }
 
 fn optimise_rules(rules: &mut Vec<Rule>) {
 	loop {
 		let mut made_changes = false;
 		for i in 0..rules.len() {
-			let copy = rules[i].clone();
-			let optimised = optimise_rule(copy, rules);
-			if rules[i] != optimised {
+			let mut copy = rules[i].clone();
+			copy.optimise_rule(rules);
+			if rules[i] != copy {
 				made_changes = true;
 			}
-			rules[i] = optimised;
+			rules[i] = copy;
 		}
 		if !made_changes {
-			break;
+			return;
 		}
-	}
-}
-
-fn optimise_rule(rule: Rule, rules: &[Rule]) -> Rule {
-	match rule {
-		Either(r1, r2) => {
-			let o1 = optimise_rule(*r1, rules);
-			let o2 = optimise_rule(*r2, rules);
-			if o1 == o2 {
-				o1
-			} else {
-				Either(Box::new(o1), Box::new(o2))
-			}
-		}
-		One(idx) => rules[idx].clone(),
-		Two(idx, jdx) => match (&rules[idx], &rules[jdx]) {
-			(Token(a), Token(b)) => Tokens(vec![*a, *b]),
-			(Token(a), Tokens(v)) => {
-				let mut clone = v.clone();
-				clone.insert(0, *a);
-				Tokens(clone)
-			}
-			(Tokens(v), Token(b)) => {
-				let mut clone = v.clone();
-				clone.push(*b);
-				Tokens(clone)
-			}
-			(Tokens(a), Tokens(b)) => {
-				let mut clone = a.clone();
-				clone.append(&mut b.clone());
-				Tokens(clone)
-			}
-			(Two(a, b), One(c)) => Three(*a, *b, *c),
-			(One(a), Two(b, c)) => Three(*a, *b, *c),
-			(One(a), One(b)) => Two(*a, *b),
-			_ => rule,
-		},
-		Three(idx, jdx, kdx) => match (&rules[idx], &rules[jdx], &rules[kdx]) {
-			(Token(a), Token(b), Token(c)) => Tokens(vec![*a, *b, *c]),
-			(Tokens(a), Token(b), Token(c)) => {
-				let mut clone = a.clone();
-				clone.push(*b);
-				clone.push(*c);
-				Tokens(clone)
-			}
-			(Token(a), Tokens(b), Token(c)) => {
-				let mut clone = b.clone();
-				clone.insert(0, *a);
-				clone.push(*c);
-				Tokens(clone)
-			}
-			(Token(a), Token(b), Tokens(c)) => {
-				let mut clone = c.clone();
-				clone.insert(0, *b);
-				clone.insert(0, *a);
-				Tokens(clone)
-			}
-			(Tokens(a), Tokens(b), Token(c)) => {
-				let mut clone = a.clone();
-				clone.append(&mut b.clone());
-				clone.push(*c);
-				Tokens(clone)
-			}
-			(Tokens(a), Token(b), Tokens(c)) => {
-				let mut clone = a.clone();
-				clone.push(*b);
-				clone.append(&mut c.clone());
-				Tokens(clone)
-			}
-			(Token(a), Tokens(b), Tokens(c)) => {
-				let mut clone = b.clone();
-				clone.insert(0, *a);
-				clone.append(&mut c.clone());
-				Tokens(clone)
-			}
-			(Tokens(a), Tokens(b), Tokens(c)) => {
-				let mut clone = a.clone();
-				clone.append(&mut b.clone());
-				clone.append(&mut c.clone());
-				Tokens(clone)
-			}
-			_ => rule,
-		},
-		_ => rule,
 	}
 }
 
