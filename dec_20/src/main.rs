@@ -3,29 +3,41 @@ use std::{collections::HashMap, num::ParseIntError, str::FromStr, unreachable};
 pub mod matrix;
 use matrix::Matrix;
 
+const PATTERN: [[bool; 20]; 3] = [
+	[
+		false, false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false, false, true, false,
+	],
+	[
+		true, false, false, false, false, true, true, false, false, false, false, true, true,
+		false, false, false, false, true, true, true,
+	],
+	[
+		false, true, false, false, true, false, false, true, false, false, true, false, false,
+		true, false, false, true, false, false, false,
+	],
+];
+
 fn main() {
 	let input = include_str!("input.txt");
-	let sol1 = solve1(&input);
-	let sol2 = solve2(&input);
+	let map = solve_map(&input);
+	let sol1 = solve1(&map);
+	let sol2 = solve2(&input, &map);
 	println!("{} {}", sol1, sol2);
 }
 
-fn solve1(input: &str) -> u64 {
-	let map = solve_map(input);
-
+fn solve1(map: &HashMap<(i32, i32), Tile>) -> u64 {
 	let x_max = map.keys().map(|&(x, _)| x).max().unwrap();
 	let x_min = map.keys().map(|&(x, _)| x).min().unwrap();
 	let y_max = map.keys().map(|&(_, y)| y).max().unwrap();
 	let y_min = map.keys().map(|&(_, y)| y).min().unwrap();
 
-	let a = map[&(x_max, y_max)].id as u64;
-	let b = map[&(x_min, y_max)].id as u64;
-	let c = map[&(x_max, y_min)].id as u64;
-	let d = map[&(x_min, y_min)].id as u64;
-	a * b * c * d
+	map[&(x_max, y_max)].id as u64
+		* map[&(x_min, y_max)].id as u64
+		* map[&(x_max, y_min)].id as u64
+		* map[&(x_min, y_min)].id as u64
 }
-fn solve2(input: &str) -> i32 {
-	let map = solve_map(input);
+fn solve2(input: &str, map: &HashMap<(i32, i32), Tile>) -> i32 {
 	let x_max = map.keys().map(|&(x, _)| x).max().unwrap();
 	let x_min = map.keys().map(|&(x, _)| x).min().unwrap();
 	let y_max = map.keys().map(|&(_, y)| y).max().unwrap();
@@ -67,20 +79,7 @@ fn solve2(input: &str) -> i32 {
 		}
 	}
 
-	let pattern: [[bool; 20]; 3] = [
-		[
-			false, false, false, false, false, false, false, false, false, false, false, false,
-			false, false, false, false, false, false, true, false,
-		],
-		[
-			true, false, false, false, false, true, true, false, false, false, false, true, true,
-			false, false, false, false, true, true, true,
-		],
-		[
-			false, true, false, false, true, false, false, true, false, false, true, false, false,
-			true, false, false, true, false, false, false,
-		],
-	];
+	let blocks = image.raw().iter().filter(|&&b| b).count() as i32;
 	let sum = (0..8)
 		.map(|v| {
 			let mut clone = image.clone();
@@ -93,7 +92,7 @@ fn solve2(input: &str) -> i32 {
 								let offset = clone.width() * (y + o) + x;
 								clone.raw()[offset..offset + 20]
 									.iter()
-									.zip(pattern[o].iter())
+									.zip(PATTERN[o].iter())
 									.all(|(&a, &b)| a || !b)
 							})
 						})
@@ -102,8 +101,6 @@ fn solve2(input: &str) -> i32 {
 				.sum::<i32>()
 		})
 		.sum::<i32>();
-
-	let blocks = image.raw().iter().filter(|&&b| b).count() as i32;
 
 	blocks - 15 * sum
 }
@@ -132,13 +129,13 @@ fn solve_map(input: &str) -> HashMap<(i32, i32), Tile> {
 				let l_req = map.get(left).map(|t| t.right);
 				let t_req = map.get(above).map(|t| t.bottom);
 				let b_req = map.get(below).map(|t| t.top);
-				let mut i = all_tiles.iter().filter(|t| {
+				let mut iter = all_tiles.iter().filter(|t| {
 					r_req.map(|r| r == t.right) != Some(false)
 						&& l_req.map(|r| r == t.left) != Some(false)
 						&& t_req.map(|r| r == t.top) != Some(false)
 						&& b_req.map(|r| r == t.bottom) != Some(false)
 				});
-				if let (Some(t), None) = (i.next(), i.next()) {
+				if let (Some(t), None) = (iter.next(), iter.next()) {
 					let next_tile = *t;
 					all_tiles.retain(|t| t.id != next_tile.id);
 					map.insert(space, next_tile);
