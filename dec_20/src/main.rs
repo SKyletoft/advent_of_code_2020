@@ -1,4 +1,7 @@
-use std::{collections::HashMap, num::ParseIntError, str::FromStr};
+use std::{collections::HashMap, num::ParseIntError, str::FromStr, unreachable};
+
+pub mod matrix;
+use matrix::Matrix;
 
 fn main() {
 	let input = include_str!("input.txt");
@@ -30,32 +33,40 @@ fn solve2(input: &str) -> i32 {
 
 	let raw = input.lines().collect::<Vec<_>>();
 
-	let mut image =
-		vec![vec![false; (y_max - y_min + 1) as usize * 8]; (x_max - x_min + 1) as usize * 8];
+	let height = (y_max - y_min + 1) as usize * 8;
+	let width = (x_max - x_min + 1) as usize * 8;
+	let mut image = Matrix::new(height, width, vec![false; height * width]);
 	for x in x_min..=x_max {
 		for y in y_min..=y_max {
 			let id = map[&(x, y)].id;
 			let var = map[&(x, y)].variation;
 			let base_x = (x - x_min) as usize * 8;
 			let base_y = (y - y_min) as usize * 8;
-			let tile = raw
-				.iter()
-				.skip_while(|l| l.get(5..9).map(|x| x.parse()) != Some(Ok(id)))
-				.skip(2)
-				.take(8)
-				.map(|l| l[1..9].bytes().map(|c| c == b'#').collect::<Vec<bool>>())
-				.collect::<Vec<_>>();
-			let rotated = rotate_and_mirror(&tile, var);
+			let mut tile = Matrix::new(
+				8,
+				8,
+				raw.iter()
+					.skip_while(|l| l.get(5..9).map(|x| x.parse()) != Some(Ok(id)))
+					.skip(2)
+					.take(8)
+					.flat_map(|l| l[1..9].bytes().map(|c| c == b'#'))
+					.collect::<Vec<_>>(),
+			);
+			tile.rotate_and_mirror(var);
 
-			for (t_x, t_y, v) in rotated
+			let width = tile.width();
+			let height = tile.height();
+			for (t_y, t_x, v) in tile
+				.raw()
 				.iter()
 				.enumerate()
-				.flat_map(|(x, l)| l.iter().enumerate().map(move |(y, v)| (y, x, v)))
+				.map(|(i, v)| (i / width, i % height, v))
 			{
-				image[base_y + t_y][base_x + t_x] = *v;
+				image[(base_x + t_x, base_y + t_y)] = *v;
 			}
 		}
 	}
+
 	let pattern: [[bool; 20]; 3] = [
 		[
 			false, false, false, false, false, false, false, false, false, false, false, false,
@@ -71,14 +82,16 @@ fn solve2(input: &str) -> i32 {
 		],
 	];
 	let sum = (0..8)
-		.map(|v| rotate_and_mirror(&image, v))
-		.map(|image| {
-			(0..image.len() - 3)
+		.map(|v| {
+			let mut clone = image.clone();
+			clone.rotate_and_mirror(v);
+			(0..clone.width() - 3)
 				.map(|y| {
-					(0..image[y].len() - 20)
+					(0..clone.height() - 20)
 						.filter(|&x| {
 							(0..3).all(|o| {
-								image[y + o][x..x + 20]
+								let offset = clone.width() * (y + o) + x;
+								clone.raw()[offset..offset + 20]
 									.iter()
 									.zip(pattern[o].iter())
 									.all(|(&a, &b)| a || !b)
@@ -90,60 +103,9 @@ fn solve2(input: &str) -> i32 {
 		})
 		.sum::<i32>();
 
-	let blocks = image
-		.iter()
-		.map(|v| v.iter().filter(|&&b| b).count() as i32)
-		.sum::<i32>();
+	let blocks = image.raw().iter().filter(|&&b| b).count() as i32;
 
 	blocks - 15 * sum
-}
-
-fn rotate_and_mirror(tile: &[Vec<bool>], var: u8) -> Vec<Vec<bool>> {
-	match var {
-		0 => mirrorv(tile),
-		1 => mirrorv(&mirrorh(tile)),
-		2 => mirrorv(&rotate(tile)),
-		3 => mirrorv(&mirrorh(&rotate(tile))),
-		4 => mirrorv(&rotate(&rotate(tile))),
-		5 => mirrorv(&mirrorh(&rotate(&rotate(tile)))),
-		6 => mirrorv(&rotate(&rotate(&rotate(tile)))),
-		7 => mirrorv(&mirrorh(&rotate(&rotate(&rotate(tile))))),
-		_ => unreachable!(),
-	}
-}
-
-fn rotate(v: &[Vec<bool>]) -> Vec<Vec<bool>> {
-	let mut u = vec![vec![false; v.len()]; v[0].len()];
-	for (x, y, b) in v
-		.iter()
-		.enumerate()
-		.flat_map(|(x, slice)| slice.iter().enumerate().map(move |(y, &b)| (x, y, b)))
-	{
-		u[y][v.len() - x - 1] = b;
-	}
-	u
-}
-fn mirrorh(v: &[Vec<bool>]) -> Vec<Vec<bool>> {
-	let mut u = vec![vec![false; v.len()]; v[0].len()];
-	for (x, y, b) in v
-		.iter()
-		.enumerate()
-		.flat_map(|(x, slice)| slice.iter().enumerate().map(move |(y, &b)| (x, y, b)))
-	{
-		u[x][v.len() - y - 1] = b;
-	}
-	u
-}
-fn mirrorv(v: &[Vec<bool>]) -> Vec<Vec<bool>> {
-	let mut u = vec![vec![false; v.len()]; v[0].len()];
-	for (x, y, b) in v
-		.iter()
-		.enumerate()
-		.flat_map(|(x, slice)| slice.iter().enumerate().map(move |(y, &b)| (x, y, b)))
-	{
-		u[v.len() - x - 1][y] = b;
-	}
-	u
 }
 
 fn solve_map(input: &str) -> HashMap<(i32, i32), Tile> {
@@ -160,13 +122,11 @@ fn solve_map(input: &str) -> HashMap<(i32, i32), Tile> {
 	map.insert((0, 0), to_insert);
 
 	while !all_tiles.is_empty() {
-		let spaces = map
+		for space in map
 			.keys()
 			.flat_map(|c| surrounding(*c).into_iter())
 			.filter(|c| !map.contains_key(c))
-			.collect::<Vec<_>>();
-
-		for &space in spaces.iter() {
+		{
 			if let [right, left, above, below] = &surrounding(space)[..4] {
 				let r_req = map.get(right).map(|t| t.left);
 				let l_req = map.get(left).map(|t| t.right);
