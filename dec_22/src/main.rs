@@ -25,7 +25,7 @@ fn solve1(input: &[&str]) -> u64 {
 
 fn solve2(input: &[&str]) -> u64 {
 	let (mut player1, mut player2) = parse_input(input);
-	let mut history = HashSet::new();
+	let mut history = BTreeSet::new();
 	let res = recursive_combat(&mut player1, &mut player2, &mut history);
 	match res {
 		Some(true) | None => player2.clear(),
@@ -70,7 +70,7 @@ fn calculate_score(player1: &VecDeque<u8>, player2: &VecDeque<u8>) -> u64 {
 fn recursive_combat(
 	player1: &mut VecDeque<u8>,
 	player2: &mut VecDeque<u8>,
-	history: &mut HashSet<GameState>,
+	history: &mut BTreeSet<GameState>,
 ) -> Option<bool> {
 	while !player1.is_empty() && !player2.is_empty() {
 		let history_entry = GameState::from_iter(
@@ -90,7 +90,7 @@ fn recursive_combat(
 		let winner = if player1.len() as u8 >= p1 && player2.len() as u8 >= p2 {
 			let mut c1 = player1.clone();
 			let mut c2 = player2.clone();
-			let mut h = HashSet::new();
+			let mut h = BTreeSet::new();
 			recursive_combat(&mut c1, &mut c2, &mut h)?
 		} else {
 			p1 > p2
