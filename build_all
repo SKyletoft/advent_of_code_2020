@@ -61,5 +61,17 @@ cargo build --release
 cd ../dec_21
 rm -rf target
 cargo build --release
+cd ../dec_22
+rm -rf target
+cargo build --release
+cd ../dec_23
+rm -rf target
+cargo build --release
+cd ../dec_24
+rm -rf target
+cargo build --release
+cd ../dec_25
+rm -rf target
+cargo build --release
 cd ..
 

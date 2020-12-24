@@ -19,14 +19,13 @@ fn solve2(input: &[u64]) -> u64 {
 }
 
 fn run(input: &[u64], limit: u64) -> u64 {
-	let mut last = input[..input.len()-1]
+	let mut last = input[..input.len() - 1]
 		.iter()
 		.enumerate()
 		.map(|(i, &v)| (v as u64, i as u64 + 1))
 		.collect::<HashMap<_, _>>();
-	let mut turn = input.len() as u64;
 	let mut last_spoken = input[input.len() - 1];
-	while turn < limit {
+	for turn in (input.len() as u64)..limit {
 		if let Some(l) = last.get_mut(&last_spoken) {
 			last_spoken = turn - *l;
 			*l = turn;
@@ -34,7 +33,6 @@ fn run(input: &[u64], limit: u64) -> u64 {
 			last.insert(last_spoken, turn);
 			last_spoken = 0;
 		}
-		turn += 1;
 	}
 	last_spoken
 }

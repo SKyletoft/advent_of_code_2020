@@ -1,11 +1,5 @@
-use std::{collections::HashMap, mem, ops};
+use std::mem;
 
-//Multiplied by 10 for safe rounding later
-const EAST: Vector2 = Vector2 { x: 10., y: 0. };
-const NORTH_EAST: Vector2 = Vector2 {
-	x: 8.660254037844386,
-	y: 5.,
-}; //(3f64.sqrt() / 2f64, 1f64 / 2f64)
 const N_ONE: usize = -1isize as usize;
 const NEIGHBOURING: [(usize, usize); 6] = [
 	(1, 0),
@@ -28,23 +22,24 @@ fn main() {
 }
 
 fn solve1(input: &[&[u8]]) -> usize {
-	let mut map: HashMap<(i32, i32), Tile> = HashMap::new();
+	let mut grid = [[White; SIZE]; SIZE];
+
 	for line in input.iter() {
 		let mut line = *line;
-		let mut vector = Vector2 { x: 0., y: 0. };
+		let (mut x, mut y): (usize, usize) = (SIZE / 2, SIZE / 2);
 		while !line.is_empty() {
-			let (l, u) = parse_line(line);
+			let (l, (dx, dy)) = parse_line(line);
 			line = l;
-			vector = vector + u;
+			x = x.wrapping_add(dx);
+			y = y.wrapping_add(dy);
 		}
-		let x = vector.x.round() as i32;
-		let y = vector.y.round() as i32;
-		let rounded_vector = (x, y);
-		let tile_ref = map.entry(rounded_vector).or_insert(White);
-		let curr = *tile_ref;
-		*tile_ref = if curr == Black { White } else { Black };
+		grid[x][y] = if grid[x][y] == Black { White } else { Black };
 	}
-	map.values().filter(|x| **x == Black).count()
+
+	grid.iter()
+		.flat_map(|l| l.iter())
+		.filter(|&&t| t == Black)
+		.count()
 }
 
 fn solve2(input: &[&[u8]]) -> usize {
@@ -55,7 +50,7 @@ fn solve2(input: &[&[u8]]) -> usize {
 		let mut line = *line;
 		let (mut x, mut y): (usize, usize) = (SIZE / 2, SIZE / 2);
 		while !line.is_empty() {
-			let (l, (dx, dy)) = parse_line_grid(line);
+			let (l, (dx, dy)) = parse_line(line);
 			line = l;
 			x = x.wrapping_add(dx);
 			y = y.wrapping_add(dy);
@@ -64,8 +59,8 @@ fn solve2(input: &[&[u8]]) -> usize {
 	}
 
 	for _ in 0..100 {
-		for y in 0..SIZE {
-			for x in 0..SIZE {
+		for x in 0..SIZE {
+			for y in 0..SIZE {
 				let hex = grid[x][y];
 				let neighbours = NEIGHBOURING
 					.iter()
@@ -101,19 +96,7 @@ enum Tile {
 }
 use Tile::*;
 
-fn parse_line(line: &[u8]) -> (&[u8], Vector2) {
-	match line {
-		[b'e', ..] => (&line[1..], EAST),
-		[b'w', ..] => (&line[1..], -EAST),
-		[b'n', b'e', ..] => (&line[2..], NORTH_EAST),
-		[b'n', b'w', ..] => (&line[2..], NORTH_EAST - EAST),
-		[b's', b'e', ..] => (&line[2..], -NORTH_EAST + EAST),
-		[b's', b'w', ..] => (&line[2..], -NORTH_EAST),
-		_ => panic!(),
-	}
-}
-
-fn parse_line_grid(line: &[u8]) -> (&[u8], (usize, usize)) {
+fn parse_line(line: &[u8]) -> (&[u8], (usize, usize)) {
 	match line {
 		[b'e', ..] => (&line[1..], NEIGHBOURING[0]),
 		[b'w', ..] => (&line[1..], NEIGHBOURING[3]),
@@ -122,52 +105,5 @@ fn parse_line_grid(line: &[u8]) -> (&[u8], (usize, usize)) {
 		[b's', b'e', ..] => (&line[2..], NEIGHBOURING[5]),
 		[b's', b'w', ..] => (&line[2..], NEIGHBOURING[4]),
 		_ => panic!(),
-	}
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
-struct Vector2 {
-	x: f64,
-	y: f64,
-}
-
-impl ops::Add for Vector2 {
-	type Output = Self;
-
-	fn add(self, rhs: Self) -> Self::Output {
-		Self {
-			x: self.x + rhs.x,
-			y: self.y + rhs.y,
-		}
-	}
-}
-
-impl ops::Mul<f64> for Vector2 {
-	type Output = Self;
-
-	fn mul(self, rhs: f64) -> Self::Output {
-		Self {
-			x: self.x * rhs,
-			y: self.y * rhs,
-		}
-	}
-}
-
-impl ops::Neg for Vector2 {
-	type Output = Self;
-
-	fn neg(self) -> Self::Output {
-		Self {
-			x: -self.x,
-			y: -self.y,
-		}
-	}
-}
-
-impl ops::Sub for Vector2 {
-	type Output = Self;
-
-	fn sub(self, rhs: Self) -> Self::Output {
-		self + (-rhs)
 	}
 }
