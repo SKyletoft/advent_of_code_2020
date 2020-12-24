@@ -67,12 +67,17 @@ fn calculate_score(player1: &VecDeque<u8>, player2: &VecDeque<u8>) -> u64 {
 fn recursive_combat(player1: &mut VecDeque<u8>, player2: &mut VecDeque<u8>) -> bool {
 	let mut history = HashSet::new();
 	while !player1.is_empty() && !player2.is_empty() {
-		let history_entry = GameState::from_iter(player1.iter().copied());
+		let history_entry = GameState::from_iter(
+			player1
+				.iter()
+				.chain([0].iter())
+				.chain(player2.iter())
+				.copied(),
+		);
 		if history.contains(&history_entry) {
 			return true;
-		} else {
-			history.insert(history_entry);
 		}
+		history.insert(history_entry);
 		let p1 = player1.pop_front().unwrap();
 		let p2 = player2.pop_front().unwrap();
 		let winner = if player1.len() as u8 >= p1 && player2.len() as u8 >= p2 {
