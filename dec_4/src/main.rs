@@ -82,6 +82,7 @@ fn valid_year(s: &str, min: u16, max: u16) -> bool {
 		false
 	}
 }
+
 fn valid_height(s: &str) -> bool {
 	if s.len() < 2 {
 		false
@@ -97,13 +98,16 @@ fn valid_height(s: &str) -> bool {
 		false
 	}
 }
+
 fn valid_hair_colour(s: &str) -> bool {
 	let b = s.as_bytes();
 	b.len() == 7 && b[0] == b'#' && b.iter().skip(1).all(|x| x.is_ascii_hexdigit())
 }
+
 fn valid_eye_colour(s: &str) -> bool {
 	["amb", "blu", "brn", "gry", "grn", "hzl", "oth"].contains(&s)
 }
+
 fn valid_pid(s: &str) -> bool {
 	s.len() == 9 && s.bytes().all(|d| d.is_ascii_digit())
 }

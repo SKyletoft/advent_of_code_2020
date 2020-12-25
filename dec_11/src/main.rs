@@ -42,6 +42,7 @@ impl Board {
 		let index = self.w.wrapping_mul(y).wrapping_add(x);
 		self.val.get(index).copied()
 	}
+
 	fn set(&mut self, x: usize, y: usize, val: Seat) {
 		assert!(x < self.w);
 		assert!(y < self.h);
@@ -89,12 +90,7 @@ fn count_line_of_sight(from: &Board, x: usize, y: usize) -> u64 {
 		.count() as u64
 }
 
-fn step(
-	from: &Board,
-	to: &mut Board,
-	how: fn(from: &Board, x: usize, y: usize) -> u64,
-	req: u64,
-) {
+fn step(from: &Board, to: &mut Board, how: fn(from: &Board, x: usize, y: usize) -> u64, req: u64) {
 	for y in 0..from.h {
 		for x in 0..from.w {
 			let seat = from.get(x, y).unwrap();

@@ -8,6 +8,7 @@ fn main() {
 fn solve1(input: &[&str]) -> u64 {
 	input.iter().map(eval).sum::<u64>()
 }
+
 fn solve2(input: &[&str]) -> u64 {
 	input
 		.iter()

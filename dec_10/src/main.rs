@@ -57,6 +57,7 @@ impl Matrix {
 		assert!(y < self.h);
 		self.val[self.w * y + x]
 	}
+
 	fn set(&mut self, x: usize, y: usize, val: u64) {
 		assert!(x < self.w);
 		assert!(y < self.h);

@@ -37,6 +37,7 @@ fn solve1(map: &HashMap<(i32, i32), Tile>) -> u64 {
 		* map[&(x_max, y_min)].id as u64
 		* map[&(x_min, y_min)].id as u64
 }
+
 fn solve2(input: &str, map: &HashMap<(i32, i32), Tile>) -> i32 {
 	let x_max = map.keys().map(|&(x, _)| x).max().unwrap();
 	let x_min = map.keys().map(|&(x, _)| x).min().unwrap();
@@ -178,9 +179,11 @@ impl Tile {
 		new.variation = (v % 8) as u8;
 		new
 	}
+
 	fn rotate_by(self, step: u8) -> Self {
 		(0..step).fold(self, |acc, _| acc.rotate())
 	}
+
 	fn rotate(self) -> Self {
 		Tile {
 			id: self.id,
@@ -191,6 +194,7 @@ impl Tile {
 			variation: self.variation,
 		}
 	}
+
 	fn mirror(self) -> Self {
 		Tile {
 			id: self.id,
