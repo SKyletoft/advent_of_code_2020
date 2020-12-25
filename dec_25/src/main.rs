@@ -5,7 +5,6 @@ fn main() {
 		.lines()
 		.map(|x| x.parse().unwrap())
 		.collect::<Vec<u64>>();
-	dbg!(&input);
 	let sol1 = solve1(&input);
 	println!("{}", sol1);
 }
@@ -27,7 +26,8 @@ fn transform(sub_num: u64, loops: u64) -> u64 {
 	pow2(sub_num, loops as u32, MOD)
 }
 
-pub const fn pow2(mut base: u64, mut exp: u32, m: u64) -> u64 {
+//Based on u64::pow in the standard library
+const fn pow_mod(mut base: u64, mut exp: u32, m: u64) -> u64 {
 	if exp == 0 {
 		return 1;
 	}
@@ -51,5 +51,5 @@ fn solve_transform(sub_num: u64, target: u64) -> u64 {
 			return x;
 		}
 	}
-	panic!();
+	unreachable!();
 }
