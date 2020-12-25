@@ -1,5 +1,3 @@
-use rayon::prelude::*;
-
 const MOD: u64 = 20201227;
 
 fn main() {
@@ -8,7 +6,6 @@ fn main() {
 		.map(|x| x.parse().unwrap())
 		.collect::<Vec<u64>>();
 	dbg!(&input);
-	let example = vec![5764801, 17807724];
 	let sol1 = solve1(&input);
 	println!("{}", sol1);
 }
@@ -17,36 +14,42 @@ fn solve1(input: &[u64]) -> u64 {
 	let door_public_key = input[0];
 	let card_public_key = input[1];
 
+	//let door_loop_size = solve_transform(7, door_public_key);
 	let card_loop_size = solve_transform(7, card_public_key);
-	dbg!(card_loop_size);
-	let door_loop_size = solve_transform(7, door_public_key);
-	dbg!(door_loop_size);
 
 	let encryption_key_1 = transform(door_public_key, card_loop_size);
-	let encryption_key_2 = transform(card_public_key, door_loop_size);
-	assert_eq!(encryption_key_1, encryption_key_2);
+	//let encryption_key_2 = transform(card_public_key, door_loop_size);
+	//assert_eq!(encryption_key_1, encryption_key_2);
 	encryption_key_1
 }
 
 fn transform(sub_num: u64, loops: u64) -> u64 {
-	let mut val = 1;
-	for _ in 0..loops {
-		val *= sub_num;
-		while val >= MOD {
-			val -= MOD;
-		}
-		//val %= 20201227;
+	pow2(sub_num, loops as u32, MOD)
+}
+
+pub const fn pow2(mut base: u64, mut exp: u32, m: u64) -> u64 {
+	if exp == 0 {
+		return 1;
 	}
-	val
+	let mut acc = 1;
+
+	while exp > 1 {
+		if (exp & 1) == 1 {
+			acc = (acc * base) % m;
+		}
+		exp /= 2;
+		base = base * base;
+		base %= m;
+	}
+	(acc * base) % m
 }
 
 fn solve_transform(sub_num: u64, target: u64) -> u64 {
-	let offset = ((MOD / 7) + 1) * 7;
-	for which in 0.. {
-		let res = ((target + offset * which) as f64).log(sub_num as f64) as u32;
-		if 7u64.pow(res) == target {
-			return res as u64;
+	for x in 0.. {
+		let res = transform(sub_num, x);
+		if res == target {
+			return x;
 		}
 	}
-	0
+	panic!();
 }
