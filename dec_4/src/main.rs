@@ -88,9 +88,9 @@ fn valid_height(s: &str) -> bool {
 		false
 	} else if let Ok(n) = s[..s.len() - 2].parse::<u16>() {
 		if &s[s.len() - 2..] == "in" {
-			n >= 59 && n <= 76
+			(59..=76).contains(&n)
 		} else if &s[s.len() - 2..] == "cm" {
-			n >= 150 && n <= 193
+			(150..=193).contains(&n)
 		} else {
 			false
 		}
